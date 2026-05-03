@@ -111,7 +111,7 @@ let
       };
 
       packageSet = mkOption {
-        type = types'.function;
+        type = types'.packageSet-function;
       };
     };
 
@@ -137,10 +137,14 @@ in
 {
   inherit
     coercedStr
+    fixedPointOf
     function
     importable
     importedAs
+    package-function
     packageSet
+    packageSet-function
+    packageSet-member
     strLike
     ;
 }
