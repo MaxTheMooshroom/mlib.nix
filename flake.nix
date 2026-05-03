@@ -1,6 +1,7 @@
 {
   inputs = {
-    nixpkgs-lib.url = "github:nix-community/nixpkgs.lib";
+    # nixpkgs-lib.url = "github:nix-community/nixpkgs.lib";
+    nixpkgs-lib.url = "github:NixOS/nixpkgs/25.11?dir=lib";
 
     flake-parts.url = "github:hercules-ci/flake-parts";
     flake-parts.inputs.nixpkgs-lib.follows = "nixpkgs-lib";

@@ -1,8 +1,6 @@
 { lib, lib' }:
 let
-  inherit (lib'.asserts)
-    validFixedPoint
-    ;
+  validFixedPoint = lib'.asserts.fixed-points.validate;
 in
 {
   /**
@@ -35,19 +33,22 @@ in
     package-function has a required parameter that is not present on either
     attribute-set, then an error occurs.
 
-    # Inputs
+    # Arguments
 
-    1. `autoArgs` (`AttrSet`)
+    autoArgs
 
-       The "default" arguments provided to the inner package-function.
+    : 1\. (`AttrSet`)
+        The "default" arguments provided to the inner package-function.
 
-    2. `f` (`Path | (a -> pkgs -> a)`)
+    f
 
+    : 2\. (`Path | (a -> pkgs -> a)`)
        The package-set-function, as described above.
 
-    3. `args` (`AttrSet`)
+    args
 
-       An attrset of arguments to pass to the inner package-function
+    : 3\. (`AttrSet`)
+       An attrset of arguments to pass to the inner package-function.
 
     # Output
 
