@@ -26,7 +26,7 @@
 
         mlib = import inputs.lib prev.lib;
 
-        callPackageSet = final.mlib.callPackageSetWith final.newScope;
+        callPackageSet = final.mlib.callPackageSetWith final;
       };
     });
 }
