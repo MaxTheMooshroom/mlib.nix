@@ -20,13 +20,5 @@
       flake.flakeModules.default = { lib, ... }: {
         _module.args.mlib = import inputs.lib lib;
       };
-
-      flake.overlays.nixpkgs = final: prev: {
-        ${if prev ? mlib then "mlib'" else null} = prev.mlib;
-
-        mlib = import inputs.lib prev.lib;
-
-        callPackageSet = final.mlib.callPackageSetWith final;
-      };
     });
 }
