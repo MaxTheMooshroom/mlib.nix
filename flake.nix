@@ -22,9 +22,11 @@
       };
 
       flake.overlays.nixpkgs = final: prev: {
+        ${if prev ? mlib then "mlib'" else null} = prev.mlib;
+
         mlib = import inputs.lib prev.lib;
 
-        callPackageSet = final.lib'.callPackageSetWith final.newScope;
+        callPackageSet = final.mlib.callPackageSetWith final.newScope;
       };
     });
 }
