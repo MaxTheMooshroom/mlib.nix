@@ -1,4 +1,4 @@
-{ lib, lib' }:
+{ lib, lib', ... }:
 {
   fixed-points = lib.fix' (self: {
     validate = f: lib.assertMsg (lib.functionArgs f == {}) ''

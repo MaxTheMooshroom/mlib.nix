@@ -1,4 +1,4 @@
-{ lib, lib' }:
+{ lib, lib', ... }:
 let
   lists' = lib'.lists;
 
@@ -9,13 +9,14 @@ let
     tail
     ;
 
-  inherit (lib)
-    id
-    ;
-
   inherit (lib.lists)
     imap0
     imap1
+    ;
+
+  inherit (lib'.trivial)
+    const
+    turn
     ;
 in
 {
@@ -24,13 +25,21 @@ in
   /**
     Create a list consisting of `n` copies of `elem`.
 
+    # Arguments
+
+    `elem`
+    : 1\. The item to replicate.
+
+    `n`
+    : 2\. The number of times to replicate `elem`.
+
     # Type
 
     ```
     replicate' :: a -> Integer -> [a]
     ```
   */
-  replicate' = elem: genList (id elem);
+  replicate' = turn genList const;
 
   sum = foldl' lib.add 0;
 

@@ -1,4 +1,4 @@
-{ lib, lib' }:
+{ lib, lib', ... }:
 let
   validFixedPoint = lib'.asserts.fixed-points.validate;
 in

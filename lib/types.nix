@@ -1,4 +1,4 @@
-{ lib, lib' }:
+{ lib, lib', ... }:
 let
   types' = lib'.types;
 
@@ -36,83 +36,40 @@ let
       })
     );
 
-  packageSet-function = types.uniq
-    (types'.importedAs
-      (types.functionTo
-        (updateAttrsWith (types.functionTo types'.packageSet) (old: {
-          name = "packageset-function";
-          description = "fixed-point operator over a package-function and its packageset";
-          descriptionClass = "noun";
+  packageSet-member = types.mkOptionType {
+    name = "packageSet-member";
+    description = "a member of a packageSet, either a package or a nested packageSet";
 
-          # Is `f` a valid fixed-point function over a package-function?
-          # We can't check the resulting package-set for validity until
-          # after `f` has been passed to `callPackageSetWith` or a
-          # recursively nested `callPackageSet`. To validate that, we should
-          # use the merge function to wrap the function such that before the
-          # result is returned, we validate that it has the expected
-          # properties of a package-set.
-          check = f:
-                lib.isFunction f
-            &&  lib.functionArgs f == {}
-            &&  (
-              let fp = lib.fix f; in
-                  lib.isFunction fp
-              &&  lib.functionArgs fp != {}
-            );
-
-          merge =
-            let
-              hasFunction = s: x: lib.isFunction (s.${x} or null);
-            in
-              loc: defs:
-                let
-                  def = (builtins.head defs).value;
-                  hasFunction' = hasFunction def;
-                in
-                  lib.flip lib'.asserts.packageSets.wrapWithAsserts def [
-                    (x: (x._type or null) == "pkg-set")
-                    (hasFunction' "callPackage")
-                    (hasFunction' "callPackageSet")
-                    (hasFunction' "overridePackage")
-                    (hasFunction' "overrideSet")
-                    (hasFunction' "packageSet")
-                  ];
-        }))
-      )
+    check = x: lib.isAttrs x && (
+      (x.type or null == "derivation")
+      || types'.packageSet.check x
     );
+  };
 
-  packageSet-member = types.oneOf [
-    types.package
-    types'.packageSet
-  ];
+  # packageSet-member = types.oneOf [
+  #   types.package
+  #   types'.packageSet
+  # ];
 
   packageSet = types.submodule {
-    freeformType = packageSet-member;
+    freeformType = types'.packageSet-member;
 
     options = {
       _type = mkOption {
         type = types.str;
       };
 
-      callPackage = mkOption {
-        type = types'.function;
-      };
+      packageSet = mkOption { type = types'.function; };
 
-      callPackageSet = mkOption {
-        type = types'.function;
-      };
+      callPackage     = mkOption { type = types'.function; };
+      callPackageSet  = mkOption { type = types'.function; };
+      overridePackage = mkOption { type = types'.function; };
+      overrideSet     = mkOption { type = types'.function; };
 
-      overridePackage = mkOption {
-        type = types'.function;
-      };
-
-      overrideSet = mkOption {
-        type = types'.function;
-      };
-
-      packageSet = mkOption {
-        type = types'.packageSet-function;
-      };
+      # compat functions
+      overrideScope = mkOption { type = types'.function; };
+      newScope      = mkOption { type = types'.function; };
+      packages      = mkOption { type = types'.function; };
     };
 
     config = {
@@ -143,7 +100,6 @@ in
     importedAs
     package-function
     packageSet
-    packageSet-function
     packageSet-member
     strLike
     ;

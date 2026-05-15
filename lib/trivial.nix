@@ -1,4 +1,4 @@
-{ lib, lib' }:
+{ lib, lib', ... }:
 let
   trivial' = lib'.trivial;
 
@@ -27,16 +27,16 @@ in
     result = isFoo "bar"; # false
     ```
   */
-  eq = a: b: b == a;
+  eq  = a: b: b == a;
   neq = a: b: a != b;
 
-  swap = x: f: f x;
-  turn = f: f': x: f (f' x);
+  swap  = x: f: f x;
+  turn  = f: g: x: f (g x);
+  /** Equivalent to `f: g: a: b: f (g a b)` */
+  turn2 = with trivial'; turn turn turn;
 
   /**
     call a function with a list of parameters.
-
-    Parameter `f` only exists for this documentation to be discoverable.
 
     # Inputs
 
@@ -61,7 +61,7 @@ in
     Arg :: Any
     ```
   */
-  callWith = f: builtins.foldl' lib.id f;
+  callWith = builtins.foldl' lib.id;
 
   /**
     Pass `x` to `f` and apply logical negation to the result.
@@ -73,14 +73,35 @@ in
     ```
   */
   not = f: x: !f x;
-  notAttrs    = trivial'.not builtins.isAttrs;
-  notBool     = trivial'.not builtins.isBool;
-  notFloat    = trivial'.not builtins.isFloat;
-  notFunction = trivial'.not builtins.isFunction;
-  notInt      = trivial'.not builtins.isInt;
-  notList     = trivial'.not builtins.isList;
-  notNull     = trivial'.not builtins.isNull;
-  notPath     = trivial'.not builtins.isPath;
+  notAttrs      = trivial'.not builtins.isAttrs;
+  notBool       = trivial'.not builtins.isBool;
+  notFloat      = trivial'.not builtins.isFloat;
+  notFunction   = trivial'.not builtins.isFunction;
+  notInt        = trivial'.not builtins.isInt;
+  notList       = trivial'.not builtins.isList;
+  notNull       = trivial'.not builtins.isNull;
+  notPath       = trivial'.not builtins.isPath;
+  notDerivation = trivial'.not lib.isDerivation;
+
+  /**
+    For a given value `x`, return a function that for any input returns `x`.
+
+    # Arguments
+
+    `x`
+    : 1\. The value that should always be returned.
+
+    # Type
+
+    ```
+    const :: a -> (Any -> a);
+    ```
+  */
+  const     = x: _: x;
+  true      = trivial'.const true;
+  False     = trivial'.const false;
+  Null      = trivial'.const null;
+  EmptySet  = trivial'.const {};
 
   ifElse = cond: a: b: if cond then a else b;
 
@@ -89,9 +110,25 @@ in
     then  "stringCoercibleSet"
     else  builtins.typeOf value;
 
-  # composeFunctions = f: lib'.lists.splitFor (builtins.foldl' f);
-  #
-  # composeFunctions' = fns: trivial'.composeFunctions 1 fns;
+  /**
+    Pipe a value through a list of functions, where the result of each
+    function is the argument to the next function in the list.
+
+    # Arguments
+
+    `nul`
+    : 1\. The value being piped through the functions.
+
+    `list`
+    : 2\. The list of functions to pipe the value through.
+
+    # Type
+
+    ```
+    composeFunctions :: Any -> [(Any -> Any)] -> Any
+    ```
+  */
+  composeFunctions = builtins.foldl' trivial'.swap;
 
   isImportable = x:
     (lib.strings.isStringLike x)
