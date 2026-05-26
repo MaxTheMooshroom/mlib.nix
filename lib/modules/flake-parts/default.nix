@@ -1,16 +1,12 @@
-{ lib', callLib', ... }:
+{ callLib', ... }:
 {
   perSystem = {
-    moduleArgs = {
-      # TODO: delete? is there justification to have mlib as a perSystem arg?
-      #
-      # mlib = { ... }: {
-      #   perSystem = { ... }: {
-      #     _module.args.mlib = lib';
-      #   };
-      # };
-    };
+    moduleArgs = {};
 
     packageSets = callLib' ./persystem-packagesets.nix;
+
+    tests = callLib' ./persystem-tests.nix;
+
+    checksFromTests = callLib' ./persystem-checks-from-tests.nix;
   };
 }
