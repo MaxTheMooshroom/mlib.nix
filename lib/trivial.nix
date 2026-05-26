@@ -28,13 +28,17 @@ in
     result = isFoo "bar"; # false
     ```
   */
-  eq  = a: b: b == a;
+  eq = a: b: b == a;
   neq = a: b: a != b;
 
-  swap    = x: f: f x;
-  dup     = f: x: f x x;
-  turn    = f: g: x: f (g x);
-  fanout  = f: g: x: (f x) (g x);
+  swap = x: f: f x;
+  dup = f: x: f x x;
+  turn =
+    f: g: x:
+    f (g x);
+  fanout =
+    f: g: x:
+    (f x) (g x);
 
   /**
     # Equivalence
@@ -91,14 +95,14 @@ in
     ```
   */
   not = f: x: !f x;
-  notAttrs      = trivial'.not builtins.isAttrs;
-  notBool       = trivial'.not builtins.isBool;
-  notFloat      = trivial'.not builtins.isFloat;
-  notFunction   = trivial'.not builtins.isFunction;
-  notInt        = trivial'.not builtins.isInt;
-  notList       = trivial'.not builtins.isList;
-  notNull       = trivial'.not builtins.isNull;
-  notPath       = trivial'.not builtins.isPath;
+  notAttrs = trivial'.not builtins.isAttrs;
+  notBool = trivial'.not builtins.isBool;
+  notFloat = trivial'.not builtins.isFloat;
+  notFunction = trivial'.not builtins.isFunction;
+  notInt = trivial'.not builtins.isInt;
+  notList = trivial'.not builtins.isList;
+  notNull = trivial'.not builtins.isNull;
+  notPath = trivial'.not builtins.isPath;
   notDerivation = trivial'.not lib.isDerivation;
 
   /**
@@ -115,18 +119,19 @@ in
     const :: a -> (Any -> a);
     ```
   */
-  const     = x: _: x;
-  True      = trivial'.const true;
-  False     = trivial'.const false;
-  Null      = trivial'.const null;
-  EmptySet  = trivial'.const {};
+  const = x: _: x;
+  True = trivial'.const true;
+  False = trivial'.const false;
+  Null = trivial'.const null;
+  EmptySet = trivial'.const { };
 
-  ifElse = cond: a: b: if cond then a else b;
+  ifElse =
+    cond: a: b:
+    if cond then a else b;
 
-  getType = value:
-    if    lib.isAttrs value && lib.isStringLike value
-    then  "stringCoercibleSet"
-    else  builtins.typeOf value;
+  getType =
+    value:
+    if lib.isAttrs value && lib.isStringLike value then "stringCoercibleSet" else builtins.typeOf value;
 
   /**
     Pipe a value through a list of functions, where the result of each
@@ -155,14 +160,17 @@ in
 
   getLevenshteinFast = trivial'.turn builtins.filter strings'.levenshteinFast;
 
-  isImportable = x:
+  isImportable =
+    x:
     (lib.strings.isStringLike x)
     && (
-      let p = /. + (toString x); in
+      let
+        p = /. + (toString x);
+      in
       (builtins.pathExists p)
       && (
-            (pathIsRegularFile p && lib.hasSuffix ".nix" p)
-        ||  (pathIsDirectory p && builtins.pathExists (p + "/default.nix"))
+        (pathIsRegularFile p && lib.hasSuffix ".nix" p)
+        || (pathIsDirectory p && builtins.pathExists (p + "/default.nix"))
       )
     );
 

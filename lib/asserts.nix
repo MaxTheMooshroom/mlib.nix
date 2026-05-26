@@ -1,17 +1,19 @@
 { lib, lib', ... }:
 {
   fixed-points = lib.fix' (self: {
-    validate = f: lib.assertMsg (lib.functionArgs f == {}) ''
-      You passed a function with destructured parameters to a function
-      expecting a fixed-point operator. Fixed-points are validated by checking
-      that the function doesn't use a set-pattern (eg. `{ foo, bar, ... }: {}`)
-      checks its validity using `mlib.asserts.fixed-points.validate`, which
-      . The fixed-point of the
-      function is computed, so the provided function is expected to be a
-      fixed-point operator. Because destructured parameters require strict
-      evaluation of the destructured attrset, and fixed-points are
-      self-dependent, this creates an infinite loop.
-    '';
+    validate =
+      f:
+      lib.assertMsg (lib.functionArgs f == { }) ''
+        You passed a function with destructured parameters to a function
+        expecting a fixed-point operator. Fixed-points are validated by checking
+        that the function doesn't use a set-pattern (eg. `{ foo, bar, ... }: {}`)
+        checks its validity using `mlib.asserts.fixed-points.validate`, which
+        . The fixed-point of the
+        function is computed, so the provided function is expected to be a
+        fixed-point operator. Because destructured parameters require strict
+        evaluation of the destructured attrset, and fixed-points are
+        self-dependent, this creates an infinite loop.
+      '';
 
     /**
       Wrap a fixed-point operator (the function that produces a fixed-point)
@@ -33,41 +35,44 @@
       wrapWithAsserts :: [FixedPoint -> bool] -> FixedPointOperator -> FixedPoint
       ```
     */
-    wrapWithAsserts = asserts: fp:
-      self:
-        let
-          fp' = fp self;
-        in
-          assert builtins.all (lib'.trivial.swap fp') asserts;
-          fp';
+    wrapWithAsserts =
+      asserts: fp: self:
+      let
+        fp' = fp self;
+      in
+      assert builtins.all (lib'.trivial.swap fp') asserts;
+      fp';
   });
 
   packageSets = lib.fix' (self: {
-    validate = fp:
+    validate =
+      fp:
       assert lib'.asserts.fixed-points.validate fp;
-      let fp' = lib.fix fp; in
-        lib.assertMsg (lib.functionArgs fp' != {}) ''
-          A packageset-function is a fixed-point operator over the resulting
-          attribute-set of a package-function, which looks like
-          `self: { foo, bar, ... }: { /* ... */ }`.
+      let
+        fp' = lib.fix fp;
+      in
+      lib.assertMsg (lib.functionArgs fp' != { }) ''
+        A packageset-function is a fixed-point operator over the resulting
+        attribute-set of a package-function, which looks like
+        `self: { foo, bar, ... }: { /* ... */ }`.
 
-          You passed a packageset-function to another function that validates
-          them with `mlib.asserts.packageSets.validate`, which uses
-          `lib.functionArgs` to determine the validity of both fixed-point
-          operators and of package-functions. The inner package-function
-          provided either doesn't use a set-pattern
-          (destructured arguments (`{ foo, bar, ... }: /* ... */`))
-          or it uses an empty set-pattern
-          (`{}: /* ... */` or `{...}: /* ... */`), which are not detectable by
-          builtins.functionArgs (which is used by lib.functionArgs).
+        You passed a packageset-function to another function that validates
+        them with `mlib.asserts.packageSets.validate`, which uses
+        `lib.functionArgs` to determine the validity of both fixed-point
+        operators and of package-functions. The inner package-function
+        provided either doesn't use a set-pattern
+        (destructured arguments (`{ foo, bar, ... }: /* ... */`))
+        or it uses an empty set-pattern
+        (`{}: /* ... */` or `{...}: /* ... */`), which are not detectable by
+        builtins.functionArgs (which is used by lib.functionArgs).
 
-          While not technically invalid for package-functions, this makes them
-          impossible to validate as package-functions.
+        While not technically invalid for package-functions, this makes them
+        impossible to validate as package-functions.
 
-          If you're trying to create a packageset with no parameters for its
-          package-function, you'd probably be better served by
-          [nixpkgs.lib.makeScope](https://noogle.dev/f/lib/makeScope/).
-        '';
+        If you're trying to create a packageset with no parameters for its
+        package-function, you'd probably be better served by
+        [nixpkgs.lib.makeScope](https://noogle.dev/f/lib/makeScope/).
+      '';
 
     /**
       Wrap a packageset-function (a fixed-point operator over the attrset
@@ -90,14 +95,20 @@
       wrapWithAsserts :: [set -> bool] -> FixedPointOperator -> set -> (Package | Any)
       ```
     */
-    wrapWithAsserts = asserts: psf:
-      self:
-        let g = psf self; in {
-          __functionArgs = lib.functionArgs g;
-          __functor = _: args:
-            let result = g args; in
-              assert builtins.all (lib'.trivial.swap result) asserts;
-              result;
+    wrapWithAsserts =
+      asserts: psf: self:
+      let
+        g = psf self;
+      in
+      {
+        __functionArgs = lib.functionArgs g;
+        __functor =
+          _: args:
+          let
+            result = g args;
+          in
+          assert builtins.all (lib'.trivial.swap result) asserts;
+          result;
       };
   });
 }

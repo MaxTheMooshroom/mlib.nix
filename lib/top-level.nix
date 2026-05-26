@@ -1,13 +1,19 @@
-lib: lib.makeExtensible
-(self:
+lib:
+lib.makeExtensible (
+  self:
   let
-    callLib = path: args: import path (args // {
-      inherit lib callLib callLib';
+    callLib =
+      path: args:
+      import path (
+        args
+        // {
+          inherit lib callLib callLib';
 
-      lib' = self;
-    });
+          lib' = self;
+        }
+      );
 
-    callLib' = lib.flip callLib {};
+    callLib' = lib.flip callLib { };
   in
   {
     asserts = callLib' ./asserts.nix;
@@ -52,4 +58,5 @@ lib: lib.makeExtensible
     inherit (self.customization)
       callPackageSetWith
       ;
-  })
+  }
+)

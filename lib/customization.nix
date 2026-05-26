@@ -2,12 +2,12 @@
 let
   validFixedPoint = lib'.asserts.fixed-points.validate;
 
-  inherit (lib'.trivial)
-    const
-    getLevenshteinFast
-    negate
-    pipe
-    ;
+  # inherit (lib'.trivial)
+  #   const
+  #   getLevenshteinFast
+  #   negate
+  #   pipe
+  #   ;
 in
 {
   /**
@@ -118,12 +118,10 @@ in
     callPackageSetWith {} (self: { dep, }: {  })
     ````
   */
-  callPackageSetWith = autoArgs: f: args:
+  callPackageSetWith =
+    autoArgs: f: args:
     let
-      f' =
-        if    lib.isFunction f
-        then  f
-        else  import f;
+      f' = if lib.isFunction f then f else import f;
     in
     assert validFixedPoint f';
     let
@@ -133,7 +131,7 @@ in
         let
           callPackage = lib.callPackageWith (args' // self);
 
-          package = (lib.callPackageWith args' (f' self) {});
+          package = (lib.callPackageWith args' (f' self) { });
 
           set-members = {
             _type = "pkg-set";
@@ -151,8 +149,10 @@ in
             newScope = x: lib.callPackageWith (args' // self // x);
           };
         in
-          (removeAttrs package (["__internal"] ++ (package.__internal or [])))
-          // set-members;
+        (removeAttrs package ([ "__internal" ] ++ (package.__internal or [ ]))) // set-members;
     in
-      builtins.removeAttrs self [ "override" "overrideDerivation" ];
+    builtins.removeAttrs self [
+      "override"
+      "overrideDerivation"
+    ];
 }

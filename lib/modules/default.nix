@@ -1,6 +1,6 @@
 { callLib', ... }:
 {
-  nixpkgs = {};
+  nixpkgs = { };
 
   flake-parts = callLib' ./flake-parts;
 }
