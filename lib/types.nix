@@ -27,23 +27,18 @@ let
   importedAs = types.coercedTo importable builtins.import;
   fixedPointOf = types.coercedTo types'.function lib.fix;
 
-  package-function = importedAs
-    (updateAttrsWith
-      (types.functionTo types.package)
-      (old: {
-        name = "package-function";
-        check = x: old.check x && (lib.functionArgs x) != {};
-      })
-    );
+  package-function = importedAs (
+    updateAttrsWith (types.functionTo types.package) (old: {
+      name = "package-function";
+      check = x: old.check x && (lib.functionArgs x) != { };
+    })
+  );
 
   packageSet-member = types.mkOptionType {
     name = "packageSet-member";
     description = "a member of a packageSet, either a package or a nested packageSet";
 
-    check = x: lib.isAttrs x && (
-      (x.type or null == "derivation")
-      || types'.packageSet.check x
-    );
+    check = x: lib.isAttrs x && ((x.type or null == "derivation") || types'.packageSet.check x);
   };
 
   # packageSet-member = types.oneOf [
@@ -61,15 +56,15 @@ let
 
       packageSet = mkOption { type = types'.function; };
 
-      callPackage     = mkOption { type = types'.function; };
-      callPackageSet  = mkOption { type = types'.function; };
+      callPackage = mkOption { type = types'.function; };
+      callPackageSet = mkOption { type = types'.function; };
       overridePackage = mkOption { type = types'.function; };
-      overrideSet     = mkOption { type = types'.function; };
+      overrideSet = mkOption { type = types'.function; };
 
       # compat functions
       overrideScope = mkOption { type = types'.function; };
-      newScope      = mkOption { type = types'.function; };
-      packages      = mkOption { type = types'.function; };
+      newScope = mkOption { type = types'.function; };
+      packages = mkOption { type = types'.function; };
     };
 
     config = {
@@ -85,11 +80,7 @@ let
     merge = lib.options.mergeEqualOption;
   };
 
-  coercedStr =
-    types.coercedTo
-      types'.strLike
-      builtins.toString
-      types.str;
+  coercedStr = types.coercedTo types'.strLike builtins.toString types.str;
 in
 {
   inherit

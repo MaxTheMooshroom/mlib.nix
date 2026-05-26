@@ -50,38 +50,35 @@ in
   enumerated0 = imap0 (idx: value: { inherit idx value; });
   enumerated1 = imap1 (idx: value: { inherit idx value; });
 
-  ifoldl'0 = f: acc: list:
-    foldl'
-      (acc: { idx, value }: f idx acc value)
-      acc
-      (lists'.enumerated0 list);
+  ifoldl'0 =
+    f: acc: list:
+    foldl' (acc: { idx, value }: f idx acc value) acc (lists'.enumerated0 list);
 
-  ifoldl'1 = f: acc: list:
-    foldl'
-      (acc: { idx, value }: f idx acc value)
-      acc
-      (lists'.enumerated1 list);
+  ifoldl'1 =
+    f: acc: list:
+    foldl' (acc: { idx, value }: f idx acc value) acc (lists'.enumerated1 list);
 
-  sublist = start: count: list:
+  sublist =
+    start: count: list:
     let
       threshold-max = N: x: lib'.trivial.ifElse (N < x) 0 x;
 
       count' = threshold-max (length list) (start + count);
       start' = lib'.trivial.min0 start;
     in
-      builtins.genList
-        (lib'.turn (elemAt list) (add start'))
-        count';
+    builtins.genList (lib'.turn (elemAt list) (add start')) count';
 
   /**
+    Returns the first N elements of a list.
+
     # Equivalence
 
     ```
-    
+    N: list:
+      builtins.genList
+        (i: builtins.elemAt list i)
+        (lib.max N (builtins.length list))
     ```
   */
-  take = count:
-    trivial'.fanout
-      (lib'.turn genList elemAt)
-      (lib'.turn (lib.max count) length);
+  take = N: trivial'.fanout (lib'.turn genList elemAt) (lib'.turn (lib.max N) length);
 }

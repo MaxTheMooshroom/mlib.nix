@@ -1,7 +1,7 @@
 { callLib', ... }:
 {
   perSystem = {
-    moduleArgs = {};
+    moduleArgs = { };
 
     packageSets = callLib' ./persystem-packagesets.nix;
 
