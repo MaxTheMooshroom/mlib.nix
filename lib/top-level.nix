@@ -47,9 +47,13 @@ lib.makeExtensible (
     types = callLib' ./types.nix;
     versions = callLib' ./versions.nix;
 
+    inherit (self.attrsets)
+      filterAttrNames
+      ;
+
     inherit (self.trivial)
-      const
       eq
+      fanout
       neq
       swap
       turn
@@ -57,6 +61,10 @@ lib.makeExtensible (
 
     inherit (self.customization)
       callPackageSetWith
+      ;
+
+    inherit (self.flakes)
+      mkFlake
       ;
   }
 )
