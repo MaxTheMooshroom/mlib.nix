@@ -19,6 +19,7 @@ lib.makeExtensible (
     asserts = callLib' ./asserts.nix;
     attrsets = callLib' ./attrsets.nix;
     cli = callLib' ./cli.nix;
+    constraints = callLib' ./constraints.nix;
     customization = callLib' ./customization.nix;
     debug = callLib' ./debug.nix;
     derivations = callLib' ./derivations.nix;
