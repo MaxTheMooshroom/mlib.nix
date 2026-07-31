@@ -48,10 +48,6 @@ lib.makeExtensible (
     types = callLib' ./types.nix;
     versions = callLib' ./versions.nix;
 
-    inherit (self.attrsets)
-      filterAttrNames
-      ;
-
     inherit (self.trivial)
       eq
       fanout
