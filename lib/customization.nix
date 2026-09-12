@@ -8,8 +8,66 @@ let
   #   negate
   #   pipe
   #   ;
+
+  orAllValues = lib.const (builtins.any lib.id);
 in
 {
+  #? composeOverridesOf :: F1 -> F2 -> (set -> )
+  #? F1 :: { __functor :: (F1 -> set -> F2), override :: (set -> F1), ... }
+  #? F2 :: { __functor :: (F2 -> set -> R), override :: (set -> F2), ... }
+  composeOverridesOf =
+    f1: f2: default-f2-args:
+    let
+      f1-args = lib.functionArgs f1.override;
+      f2-args = lib.functionArgs f2.override;
+    in
+      {
+        inherit f1 f2 f1-args f2-args default-f2-args;
+
+        __functionArgs =
+          builtins.zipAttrsWith
+            orAllValues
+            [f1-args f2-args]
+          ;
+
+        __functor =
+          { f1, f1-args, f2, f2-args, default-f2-args, ... }:
+          { ... }@args:
+          let
+            args-1 = builtins.intersectAttrs f1-args args;
+            args-2 = default-f2-args // (builtins.intersectAttrs f2-args args);
+          in
+            if    args-1 != {}
+            then  f1.override args-1 args-2
+            else
+              if    args-2 != {}
+              then  f2.override args-2
+              else  f2
+          ;
+      }
+      ;
+
+  callPackageFunction =
+    autoArgs: fn: pkg-args:
+    let pkg-fn = lib.callPackageWith autoArgs fn pkg-args; in
+    {
+      inherit pkg-fn;
+
+      __functionArgs = lib.functionArgs pkg-fn;
+
+      __functor =
+        { pkg-fn, ... }:
+        args:
+        let
+          pkg = pkg-fn args;
+        in
+          pkg
+        //
+          { override = lib'.customization.composeOverridesOf pkg-fn pkg args; }
+        ;
+    }
+    ;
+
   /**
     Construct a recursive attribute-set ("package-set") of packages and/or
     nested package-sets, using a fixed-point operator over a package-function.
@@ -129,15 +187,18 @@ in
 
       self =
         let
-          callPackage = lib.callPackageWith (args' // self);
+          args'' = args' // self;
+
+          callPackage = lib.callPackageWith args'';
+          callPackageFunction = lib'.customization.callPackageFunction args'';
 
           package = (lib.callPackageWith args' (f' self) { });
 
           set-members = {
             _type = "pkg-set";
 
-            inherit callPackage;
-            callPackageSet = lib'.callPackageSetWith (args' // self);
+            inherit callPackage callPackageFunction;
+            callPackageSet = lib'.callPackageSetWith args'';
             overridePackage = x: lib'.callPackageSetWith autoArgs f' (args // x);
             overrideSet = g: lib'.callPackageSetWith autoArgs (lib.extends g f') args;
             packageSet = f';
