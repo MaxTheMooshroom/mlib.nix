@@ -47,7 +47,7 @@ in
       }
       ;
 
-  callPackageFunction =
+  callPackageFunctionWith =
     autoArgs: fn: pkg-args:
     let pkg-fn = lib.callPackageWith autoArgs fn pkg-args; in
     {
@@ -190,7 +190,7 @@ in
           args'' = args' // self;
 
           callPackage = lib.callPackageWith args'';
-          callPackageFunction = lib'.customization.callPackageFunction args'';
+          callPackageFunction = lib'.customization.callPackageFunctionWith args'';
 
           package = (lib.callPackageWith args' (f' self) { });
 
@@ -212,7 +212,7 @@ in
         in
         (removeAttrs package ([ "__internal" ] ++ (package.__internal or [ ]))) // set-members;
     in
-    builtins.removeAttrs self [
+    removeAttrs self [
       "override"
       "overrideDerivation"
     ];
