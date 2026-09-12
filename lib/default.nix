@@ -57,7 +57,7 @@ lib.makeExtensible (
       ;
 
     inherit (self.customization)
-      callPackageFunction
+      callPackageFunctionWith
       callPackageSetWith
       ;
 
