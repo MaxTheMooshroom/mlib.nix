@@ -1,4 +1,7 @@
 { lib, lib', ... }:
+let
+  trivial' = lib'.trivial;
+in
 {
   fixed-points = lib.fix' (self: {
     validate =
@@ -111,4 +114,28 @@
           result;
       };
   });
+
+  #?  throwIfPred :: (A -> bool) -> string -> A -> (never | A);
+  throwIfPred =
+    let inherit (trivial') turn turn'; in
+    turn
+      (turn trivial'.dup)
+      (
+        turn
+          (turn' (lib.flip lib.throwIf))
+          turn'
+      )
+    ;
+
+  #?  throwUnlessPred :: (A -> bool) -> string -> A -> (never | A);
+  throwUnlessPred =
+    let inherit (trivial') turn turn'; in
+    turn
+      (turn trivial'.dup)
+      (
+        turn
+          (turn' (lib.flip lib.throwIfNot))
+          turn'
+      )
+    ;
 }

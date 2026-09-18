@@ -2,7 +2,7 @@
   inputs.flake-parts.url = "github:hercules-ci/flake-parts";
 
   outputs =
-    { self, flake-parts, ... }@inputs:
+    { flake-parts, ... }@inputs:
     flake-parts.lib.mkFlake
       { inherit inputs; }
       (

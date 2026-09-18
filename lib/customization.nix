@@ -1,34 +1,43 @@
 { lib, lib', ... }:
 let
+  customization' = lib'.customization;
+  trivial' = lib'.trivial;
+
   validFixedPoint = lib'.asserts.fixed-points.validate;
-
-  # inherit (lib'.trivial)
-  #   const
-  #   getLevenshteinFast
-  #   negate
-  #   pipe
-  #   ;
-
-  orAllValues = lib.const (builtins.any lib.id);
 in
 {
   #? composeOverridesOf :: F1 -> F2 -> (set -> )
   #? F1 :: { __functor :: (F1 -> set -> F2), override :: (set -> F1), ... }
   #? F2 :: { __functor :: (F2 -> set -> R), override :: (set -> F2), ... }
   composeOverridesOf =
+    let
+      functionArgs =
+        trivial'.turn2
+          (
+            builtins.zipAttrsWith
+              #? :: any -> (A :: bool) -> A;
+              (lib.const (builtins.any lib.id))
+          )
+          lib'.lists.tuple
+        ;
+
+      getOverrideArgs =
+        trivial'.turn
+          trivial'.functionArgs
+          (builtins.getAttr "override")
+        ;
+    in
     f1: f2: default-f2-args:
     let
-      f1-args = lib.functionArgs f1.override;
-      f2-args = lib.functionArgs f2.override;
+      # f1-args = trivial'.functionArgs f1.override;
+      # f2-args = trivial'.functionArgs f2.override;
+      f1-args = getOverrideArgs f1;
+      f2-args = getOverrideArgs f2;
     in
       {
         inherit f1 f2 f1-args f2-args default-f2-args;
 
-        __functionArgs =
-          builtins.zipAttrsWith
-            orAllValues
-            [f1-args f2-args]
-          ;
+        __functionArgs = functionArgs f1-args f2-args;
 
         __functor =
           { f1, f1-args, f2, f2-args, default-f2-args, ... }:
@@ -49,23 +58,42 @@ in
 
   callPackageFunctionWith =
     autoArgs: fn: pkg-args:
-    let pkg-fn = lib.callPackageWith autoArgs fn pkg-args; in
-    {
-      inherit pkg-fn;
+    lib.fix
+      (
+        self:
+        {
+          top-fn =
+            trivial'.isOrMakeUsing
+              trivial'.isFunction
+              (trivial'.turn trivial'.toFunctor import)
+              fn
+            ;
 
-      __functionArgs = lib.functionArgs pkg-fn;
+          pkg-fn = lib.callPackageWith autoArgs self.top-fn pkg-args;
 
-      __functor =
-        { pkg-fn, ... }:
-        args:
-        let
-          pkg = pkg-fn args;
-        in
-          pkg
-        //
-          { override = lib'.customization.composeOverridesOf pkg-fn pkg args; }
-        ;
-    }
+          __functionArgs = trivial'.functionArgs self.pkg-fn;
+
+          __functor =
+            { pkg-fn, ... }:
+            args:
+            let
+              pkg = pkg-fn args;
+            in
+              pkg
+            //
+              {
+                override =
+                  customization'.composeOverridesOf
+                    pkg-fn
+                    pkg
+                    args
+                  ;
+              }
+            ;
+
+          override = customization'.callPackageFunctionWith autoArgs self.fn;
+        }
+      )
     ;
 
   /**
@@ -172,9 +200,11 @@ in
     removed from the final result of the package-set, but still available to
     self.callPackage and self.callPackageSet.
 
+    # Example
+
     ```
     callPackageSetWith {} (self: { dep, }: {  })
-    ````
+    ```
   */
   callPackageSetWith =
     autoArgs: f: args:
@@ -190,7 +220,7 @@ in
           args'' = args' // self;
 
           callPackage = lib.callPackageWith args'';
-          callPackageFunction = lib'.customization.callPackageFunctionWith args'';
+          callPackageFunction = customization'.callPackageFunctionWith args'';
 
           package = (lib.callPackageWith args' (f' self) { });
 

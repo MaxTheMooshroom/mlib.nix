@@ -61,7 +61,7 @@ in
   sublist =
     start: count: list:
     let
-      threshold-max = N: x: lib'.trivial.ifElse (N < x) 0 x;
+      threshold-max = N: x: lib'.trivial.ifThenElse (N < x) 0 x;
 
       count' = threshold-max (length list) (start + count);
       start' = lib'.trivial.min0 start;
@@ -81,4 +81,6 @@ in
     ```
   */
   take = N: trivial'.fanout (lib'.turn genList elemAt) (lib'.turn (lib.max N) length);
+
+  tuple = a: b: [ a b ];
 }
